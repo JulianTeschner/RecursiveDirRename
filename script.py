@@ -1,15 +1,13 @@
 import os
-import sys
+import argparse
 
 
-def create_paths() -> list[str]:
+def create_paths():
     return [f"{os.path.abspath('.')}/{i}" for i in os.listdir() if "." not in i]
 
 
 def rename_all():
     files_vanilla = [i for i in os.listdir() if i[0] != "."]
-    print(files_vanilla)
-
     files_new = [
         i.replace(" ", "_")
         .replace("-", "")
@@ -20,21 +18,40 @@ def rename_all():
         if i[0] != "."
     ]
     for i, v in enumerate(files_vanilla):
-        # print(files_vanilla[i], files_new[i])
         os.rename(files_vanilla[i], files_new[i])
 
 
-def recursion():
+def recursion(
+    path: str,
+    recursive: bool,
+):
+    os.chdir(path)
     rename_all()
-    paths = create_paths()
-    for path in paths:
-        os.chdir(path)
-        recursion()
+    if recursive:
+        paths = create_paths()
+        for p in paths:
+            os.chdir(p)
+            recursion(p, recursive)
 
 
-# rename_all()
 def main():
-    recursion()
+    parser = argparse.ArgumentParser(
+        description="Remove all spaces from the directory names and their child directories",
+        allow_abbrev=False,
+    )
+    parser.add_argument(
+        "-p", "--path", type=str, help="The path of the parent directory", required=True
+    )
+    parser.add_argument(
+        "-r",
+        "--recursive",
+        action="store_true",
+        help="Specifies if child directories should also be renamed. Default is false",
+    )
+    args = parser.parse_args()
+    print(args.path)
+
+    recursion(args.path, args.recursive)
 
 
 if __name__ == "__main__":
